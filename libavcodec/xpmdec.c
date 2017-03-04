@@ -167,9 +167,9 @@ static int xpm_decode_frame(AVCodecContext *avctx, void *data,
         ptr += strcspn(ptr, ",") + 1;
     }
 
-/*    if ((ret = ff_get_vbuffer(avctx, p, 0)) < 0)
+    if ((ret = ff_get_buffer(avctx, p, 0)) < 0)
         return ret;
-*/
+
 
     p->key_frame = 1;
     p->pict_type = AV_PICTURE_TYPE_I;
