@@ -75,6 +75,9 @@ static int xpm_decode_frame(AVCodecContext *avctx, void *data,
         return AVERROR_INVALIDDATA;
     }
 
+    if ((ret = ff_get_buffer(avctx, p, 0)) < 0)
+        return ret;
+
     /*  
     string parsed_data;
     for (int i = 0; i < sizeof(ptr)/sizeof(uint8_t); ++i)
@@ -167,8 +170,6 @@ static int xpm_decode_frame(AVCodecContext *avctx, void *data,
         ptr += strcspn(ptr, ",") + 1;
     }
 
-    if ((ret = ff_get_buffer(avctx, p, 0)) < 0)
-        return ret;
 
 
     p->key_frame = 1;
