@@ -56,6 +56,27 @@ static int ascii2index(const uint8_t *cpixel, int cpp)
     return n;
 }
 
+static int parse_str_int(const uint8_t *p, int len, const uint8_t *key)
+{
+    const uint8_t *end = p + len;
+
+    for(; p<end - strlen(key); p++) {
+        if (!memcmp(p, key, strlen(key)))
+            break;
+    }
+    p += strlen(key);
+    if (p >= end)
+        return INT_MIN;
+
+    for(; p<end; p++) {
+        char *eptr;
+        int64_t ret = strtol(p, &eptr, 10);
+        if ((const uint8_t *)eptr != p)
+            return ret;
+    }
+    return INT_MIN;
+}
+
 static int xpm_decode_frame(AVCodecContext *avctx, void *data,
                             int *data_size, AVPacket *avpkt)
 {
@@ -64,9 +85,12 @@ static int xpm_decode_frame(AVCodecContext *avctx, void *data,
     AVFrame *p = data;
     /*AVFrame *p = avctx->coded_frame;*/
     XPMDecContext *x = avctx->priv_data;
+    int width  = 0;
+    int height = 0;
     const uint8_t *end, *ptr = avpkt->data;
     int ncolors, cpp, ret, i, j;
     uint8_t *dst, rgba[4];
+
 
     
     end = avpkt->data + avpkt->size;
@@ -75,8 +99,6 @@ static int xpm_decode_frame(AVCodecContext *avctx, void *data,
         return AVERROR_INVALIDDATA;
     }
 
-    if ((ret = ff_get_buffer(avctx, p, 0)) < 0)
-        return ret;
 
     /*  
     string parsed_data;
@@ -92,6 +114,15 @@ static int xpm_decode_frame(AVCodecContext *avctx, void *data,
         av_log(avctx, AV_LOG_ERROR, "missing image parameters\n");
         return AVERROR_INVALIDDATA;
     }
+    
+    width  = parse_str_int(avpkt->data, avpkt->size, "_width");
+    height = parse_str_int(avpkt->data, avpkt->size, "_height");
+
+    if ((ret = ff_set_dimensions(avctx, width, height)) < 0)
+        return ret;
+
+    if ((ret = ff_get_buffer(avctx, p, 0)) < 0)
+        return ret;
 
     if (ncolors <= 0 || cpp <= 0) {
         av_log(avctx, AV_LOG_ERROR, "invalid number of colors or chars per pixel\n");
