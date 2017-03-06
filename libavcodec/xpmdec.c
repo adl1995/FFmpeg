@@ -85,20 +85,15 @@ static int xpm_decode_frame(AVCodecContext *avctx, void *data,
     AVFrame *p = data;
     /*AVFrame *p = avctx->coded_frame;*/
     XPMDecContext *x = avctx->priv_data;
-    int width  = 0;
-    int height = 0;
     const uint8_t *end, *ptr = avpkt->data;
     int ncolors, cpp, ret, i, j;
     uint8_t *dst, rgba[4];
-
-
     
     end = avpkt->data + avpkt->size;
     if (memcmp(ptr, "/* XPM */", 9)) {
         av_log(avctx, AV_LOG_ERROR, "missing signature\n");
         return AVERROR_INVALIDDATA;
     }
-
 
     /*  
     string parsed_data;
@@ -115,12 +110,6 @@ static int xpm_decode_frame(AVCodecContext *avctx, void *data,
         return AVERROR_INVALIDDATA;
     }
     
-    width  = parse_str_int(avpkt->data, avpkt->size, "_width");
-    height = parse_str_int(avpkt->data, avpkt->size, "_height");
-
-    if ((ret = ff_set_dimensions(avctx, width, height)) < 0)
-        return ret;
-
     if ((ret = ff_get_buffer(avctx, p, 0)) < 0)
         return ret;
 
@@ -147,6 +136,7 @@ static int xpm_decode_frame(AVCodecContext *avctx, void *data,
     if ((ret = avctx->get_buffer(avctx, p)) < 0)
         return ret;
 */
+
     av_fast_padded_malloc(&x->pixels, &x->pixels_size, cpp == 2 ? 94 * 94 : 94);
     if (!x->pixels)
         return AVERROR(ENOMEM);
@@ -200,7 +190,6 @@ static int xpm_decode_frame(AVCodecContext *avctx, void *data,
         }
         ptr += strcspn(ptr, ",") + 1;
     }
-
 
 
     p->key_frame = 1;
